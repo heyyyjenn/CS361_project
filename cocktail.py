@@ -1,5 +1,9 @@
 from tkinter import *
+from urllib.request import urlopen
 from PIL import Image, ImageTk
+import requests
+from io import BytesIO
+
 
 # create program shell/dimensions
 window = Tk()
@@ -97,6 +101,144 @@ random_button = Button(window,
                        borderwidth=2,
                        text="Surprise Me!")
 random_button.place(x=730, y=180)
+
+# search function calls get_cocktail() with entry field text inside search bar
+def search():
+    get_cocktail(search_text.get())
+    
+def get_cocktail(drink):
+    print(drink)
+    url = "http://www.thecocktaildb.com/api/json/v1/1/search.php?s=" + drink + ""
+    params = [{"positions": [0, 6, 7, 29]}]
+    headers = {"Content-Type": "application/json"}
+    
+    # GET request
+    response = requests.get(url, json=params, headers=headers)
+    json = response.json()
+    drink_name = json['drinks'][0]['strDrink']
+    drink_instr = json['drinks'][0]['strInstructions']
+    ingredient1 = json['drinks'][0]['strIngredient1']
+    drink_img = json['drinks'][0]['strDrinkThumb']
+
+    # place drink name title
+    background.itemconfig(drinkName, text=drink_name)
+    
+    # some drinks have less ingredients - if the json data doesn't have an ingredient listed then leave it empty
+    if json['drinks'][0]['strIngredient2']:
+        ingredient2 = json['drinks'][0]['strIngredient2']
+    else:
+        ingredient2 = ""
+    if json['drinks'][0]['strIngredient3']:
+        ingredient3 = json['drinks'][0]['strIngredient3']
+    else:
+        ingredient3 = ""
+    if json['drinks'][0]['strIngredient4']:
+        ingredient4 = json['drinks'][0]['strIngredient4']
+    else:
+        ingredient4 = ""
+    if json['drinks'][0]['strIngredient5']:
+        ingredient5 = json['drinks'][0]['strIngredient5']
+    else:
+        ingredient5 = ""
+    if json['drinks'][0]['strIngredient6']:
+        ingredient6 = json['drinks'][0]['strIngredient6']
+    else:
+        ingredient6 = ""
+    if json['drinks'][0]['strIngredient7']:
+        ingredient7 = json['drinks'][0]['strIngredient7']
+    else:
+        ingredient7 = ""
+    if json['drinks'][0]['strIngredient8']:
+        ingredient8 = json['drinks'][0]['strIngredient8']
+    else:
+        ingredient8 = ""
+    if json['drinks'][0]['strIngredient9']:
+        ingredient9 = json['drinks'][0]['strIngredient9']
+    else:
+        ingredient9 = ""
+
+    # some drinks have less measurements - if the json data doesn't have a measurement listed then leave it empty
+    strMeasure1 = json['drinks'][0]['strMeasure1']
+    if json['drinks'][0]['strMeasure2']:
+        strMeasure2 = json['drinks'][0]['strMeasure2']
+    else:
+        strMeasure2 = ""
+    if json['drinks'][0]['strMeasure3']:
+        strMeasure3 = json['drinks'][0]['strMeasure3']
+    else:
+        strMeasure3 = ""
+    if json['drinks'][0]['strMeasure4']:
+        strMeasure4 = json['drinks'][0]['strMeasure4']
+    else:
+        strMeasure4 = ""
+    if json['drinks'][0]['strMeasure5']:
+        strMeasure5 = json['drinks'][0]['strMeasure5']
+    else:
+        strMeasure5 = ""
+    if json['drinks'][0]['strMeasure6']:
+        strMeasure6 = json['drinks'][0]['strMeasure6']
+    else:
+        strMeasure6 = ""
+    if json['drinks'][0]['strMeasure7']:
+        strMeasure7 = json['drinks'][0]['strMeasure7']
+    else:
+        strMeasure7 = ""
+    if json['drinks'][0]['strMeasure8']:
+        strMeasure8 = json['drinks'][0]['strMeasure8']
+    else:
+        strMeasure8 = ""
+    if json['drinks'][0]['strMeasure9']:
+        strMeasure9 = json['drinks'][0]['strMeasure9']
+    else:
+        strMeasure9 = ""
+
+    # place ingredients
+    ingredientVar.set("Ingredients \n\n" + strMeasure1 + "  " + ingredient1 + "\n" + strMeasure2 + "  " + ingredient2
+                      + "\n" + strMeasure3 + "  " + ingredient3 + "\n" + strMeasure4 + "  " + ingredient4 + "\n"
+                      + strMeasure5 + "  " + ingredient5 + "\n" + strMeasure6 + "  " + ingredient6 + "\n"
+                      + strMeasure7 + "  " + ingredient7 + "\n" + strMeasure8 + "  " + ingredient8 + "\n"
+                      + strMeasure9 + "  " + ingredient9)
+    ingredient_label.place(x=200, y=430)
+
+    # place recipe
+    recipeVar.set("Recipe \n \n" + drink_instr)
+    recipe_label.place(x=730, y=430)
+    
+    # use teammate's wiki scraper API
+    wiki_url = "https://wiki-scrape-361.herokuapp.com/firstxpara/" + drink + "_(cocktail)/1"
+    params = [{"positions": [0, 6, 7, 29]}]
+    headers = {"Content-Type": "application/json"}
+    
+    # GET request
+    response = requests.get(wiki_url, json=params, headers=headers)
+    json = response.json()
+    wiki_info = json['output'][0]
+    
+    # we only want the first two sentences - place info
+    two_sentences = ""
+    num_of_periods = 0
+    for i in wiki_info:
+        if num_of_periods == 2:
+            break
+        two_sentences += i
+        if i == ".":
+            num_of_periods += 1
+    infoVar.set(two_sentences)
+    info_label.place(x=50, y=300)
+
+    # cocktail image - place image
+    image_url = urlopen(drink_img)
+    raw_data = image_url.read()
+    image_url.close()
+    im = Image.open(BytesIO(raw_data))
+    resized_image = im.resize((140, 140))
+    photo = ImageTk.PhotoImage(resized_image)
+    label = Label(image=photo, bg='#9AACAA', width=332, height=140)
+    label.image = photo
+    label.place(x=730, y=300)
+
+    # delete text inside search entry field
+    search_input.delete(0, END)
 
 
 window.mainloop()
