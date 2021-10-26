@@ -4,7 +4,6 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 
-
 # create program shell/dimensions
 window = Tk()
 window.geometry("1200x800+300+100")
@@ -42,6 +41,36 @@ recipe_label = Label(window, textvariable=recipeVar, font=("Candara", 15), wrapl
                      bg='#9AACAA')
 recipe_label.place(x=550, y=600)
 recipe_label.place_forget()
+
+# image
+image_label = Label(bg='#9AACAA', width=332, height=140)
+image_label.place(x=730, y=300)
+image_label.place_forget()
+
+# refresh button
+refresh_button = Button(window,
+                        text="Start Over",
+                        font=("Candara", 15),
+                        bg='#9AACAA',
+                        fg='black',
+                        height=1,
+                        width=10,
+                        command=lambda: refresh(),
+                        borderwidth=2)
+refresh_button.place(x=540, y=182)
+
+# there isn't a reload function so we have to manually hide all the labels & reset text for search bar
+def refresh():
+    search_input.delete(0, END)
+    info_label.place_forget()
+    ingredient_label.place_forget()
+    recipe_label.place_forget()
+    image_label.place_forget()
+    background.itemconfig(drinkName, text="")
+    search_input.insert(0, "Search cocktail by name")
+    refresh_button.focus()
+    search_button.bind("<FocusIn>", lambda args: search_input.delete('0', 'end'))
+
 
 # --- SEARCH ---
 
@@ -102,16 +131,18 @@ random_button = Button(window,
                        text="Surprise Me!")
 random_button.place(x=730, y=180)
 
+
 # search function calls get_cocktail() with entry field text inside search bar
 def search():
     get_cocktail(search_text.get())
-    
+
+
 def get_cocktail(drink):
     print(drink)
     url = "http://www.thecocktaildb.com/api/json/v1/1/search.php?s=" + drink + ""
     params = [{"positions": [0, 6, 7, 29]}]
     headers = {"Content-Type": "application/json"}
-    
+
     # GET request
     response = requests.get(url, json=params, headers=headers)
     json = response.json()
@@ -122,7 +153,7 @@ def get_cocktail(drink):
 
     # place drink name title
     background.itemconfig(drinkName, text=drink_name)
-    
+
     # some drinks have less ingredients - if the json data doesn't have an ingredient listed then leave it empty
     if json['drinks'][0]['strIngredient2']:
         ingredient2 = json['drinks'][0]['strIngredient2']
@@ -203,17 +234,17 @@ def get_cocktail(drink):
     # place recipe
     recipeVar.set("Recipe \n \n" + drink_instr)
     recipe_label.place(x=730, y=430)
-    
+
     # use teammate's wiki scraper API
     wiki_url = "https://wiki-scrape-361.herokuapp.com/firstxpara/" + drink + "_(cocktail)/1"
     params = [{"positions": [0, 6, 7, 29]}]
     headers = {"Content-Type": "application/json"}
-    
+
     # GET request
     response = requests.get(wiki_url, json=params, headers=headers)
     json = response.json()
     wiki_info = json['output'][0]
-    
+
     # we only want the first two sentences - place info
     two_sentences = ""
     num_of_periods = 0
@@ -233,12 +264,15 @@ def get_cocktail(drink):
     im = Image.open(BytesIO(raw_data))
     resized_image = im.resize((140, 140))
     photo = ImageTk.PhotoImage(resized_image)
-    label = Label(image=photo, bg='#9AACAA', width=332, height=140)
-    label.image = photo
-    label.place(x=730, y=300)
+    image_label.configure(image=photo)
+    image_label.image = photo
+    image_label.place(x=730, y=300)
 
     # delete text inside search entry field
     search_input.delete(0, END)
+    search_input.insert(0, "Search cocktail by name")
+    refresh_button.focus()
+    search_button.bind("<FocusIn>", lambda args: search_input.delete('0', 'end'))
 
 
 window.mainloop()
