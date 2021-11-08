@@ -4,50 +4,63 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 
-# create program shell/dimensions
+# create frame + set background image/title
 window = Tk()
 window.geometry("1200x800+300+100")
 window.title("Cocktail Recipes")
-
-# background image
-bg = PhotoImage(file="background.PNG")
-background = Canvas(window, width=400, height=400)
-background.pack(fill="both", expand=True)
-background.create_image(0, 0, image=bg, anchor="nw")
-
-# program title
-background.create_text(600, 50, fill="white", font=("Bradley Hand ITC", 50, "bold"),
+background_image = PhotoImage(file="background.PNG")
+background = Canvas(window,
+                    width=400,
+                    height=400)
+background.pack(fill="both",
+                expand=True)
+background.create_image(0, 0,
+                        image=background_image,
+                        anchor="nw")
+background.create_text(600, 50,
+                       fill="white",
+                       font=("Bradley Hand ITC", 50, "bold"),
                        text="Cocktail Recipes")
 
-# creating empty placeholders to update later dynamically
-drinkName = background.create_text(600, 250, fill="white", font=("Bradley Hand ITC", 40, "bold"), text="", width=1000)
+# create empty placeholders for drink name, info, ingredients, recipe, and image to update later dynamically
+drinkName = background.create_text(600, 250,
+                                   fill="white",
+                                   font=("Bradley Hand ITC", 40, "bold"),
+                                   text="",
+                                   width=1000)
 
-# information
 infoVar = StringVar()
-info_label = Label(window, font=("Candara", 15), textvariable=infoVar, wraplength=600, width=60, height=5, bg='#9AACAA')
-info_label.place(x=100, y=300)
-info_label.place_forget()
+info_label = Label(window,
+                   font=("Candara", 15),
+                   textvariable=infoVar,
+                   wraplength=600,
+                   width=60,
+                   height=5,
+                   bg='#9AACAA')
 
-# ingredients
 ingredientVar = StringVar()
-ingredient_label = Label(window, textvariable=ingredientVar, font=("Candara", 15), wraplength=500, width=30, height=12,
+ingredient_label = Label(window,
+                         textvariable=ingredientVar,
+                         font=("Candara", 15),
+                         wraplength=500,
+                         width=30,
+                         height=12,
                          bg='#9AACAA')
-ingredient_label.place(x=550, y=600)
-ingredient_label.place_forget()
 
-# recipe
 recipeVar = StringVar()
-recipe_label = Label(window, textvariable=recipeVar, font=("Candara", 15), wraplength=300, width=30, height=12,
+recipe_label = Label(window,
+                     textvariable=recipeVar,
+                     font=("Candara", 15),
+                     wraplength=300,
+                     width=30,
+                     height=12,
                      bg='#9AACAA')
-recipe_label.place(x=550, y=600)
-recipe_label.place_forget()
 
-# image
-image_label = Label(bg='#9AACAA', width=332, height=140)
-image_label.place(x=730, y=300)
-image_label.place_forget()
+image_label = Label(bg='#9AACAA',
+                    width=332,
+                    height=140)
 
-# refresh button
+# refresh button & function
 refresh_button = Button(window,
                         text="Start Over",
                         font=("Candara", 15),
@@ -59,8 +72,12 @@ refresh_button = Button(window,
                         borderwidth=2)
 refresh_button.place(x=540, y=182)
 
-# there isn't a reload function so we have to manually hide all the labels & reset text for search bar
 def refresh():
+    """
+    A method that "refreshes" the frame so the user can start over searches by hiding any existing drink name title,
+    info, ingredients/measurements, image, and recipe. It deletes any existing text inside the search bar and resets
+    the placeholder text
+    """
     search_input.delete(0, END)
     info_label.place_forget()
     ingredient_label.place_forget()
@@ -72,16 +89,14 @@ def refresh():
     search_button.bind("<FocusIn>", lambda args: search_input.delete('0', 'end'))
 
 
-# --- SEARCH ---
-
-# search text
-background.create_text(300, 150, fill="#eaac72", font=("Candara", 18),
+# search bar description text, entry field, placeholder text, and button
+background.create_text(300, 150,
+                       fill="#eaac72",
+                       font=("Candara", 18),
                        text="Learn about a cocktail and learn how to make it! \n               Enter the cocktail "
                             "name below:",
                        width=500)
 search_text = StringVar()
-
-# search field
 search_input = Entry(window,
                      font=("Candara", 15),
                      bg='#9AACAA',
@@ -89,14 +104,18 @@ search_input = Entry(window,
                      bd=5,
                      textvariable=search_text,
                      borderwidth=2)
-
-# search entry placeholder text
 search_input.insert(0, "Search cocktail by name")
 
 # delete placeholder/searched text upon clicking inside entry field
 search_input.bind("<FocusIn>", lambda args: search_input.delete('0', END))
+
+# allows users to press enter to start search after entering a drink name
 search_input.bind("<Return>", lambda args: random_or_specified("specified"))
-search_input.place(x=100, y=180, height=41, width=330)
+
+search_input.place(x=100,
+                   y=180,
+                   height=41,
+                   width=330)
 
 # magnifying glass search button
 search_image = Image.open("search.PNG")
@@ -113,15 +132,15 @@ search_button = Button(window,
 search_button.bind("<FocusIn>", lambda args: search_input.delete('0', 'end'))
 search_button.place(x=430, y=182)
 
-# --- RANDOM ---
-
 # random text
-background.create_text(900, 150, fill="#eaac72", font=("Candara", 18),
+background.create_text(900, 150,
+                       fill="#eaac72",
+                       font=("Candara", 18),
                        text="Can't decide or looking for a random cocktail? \n                    Click the button "
                             "below:",
                        width=500)
 
-# random button
+# random drink description text, entry field, placeholder text, and button
 random_button = Button(window,
                        bg='#9AACAA',
                        height=1,
@@ -132,21 +151,29 @@ random_button = Button(window,
                        text="Surprise Me!")
 random_button.place(x=730, y=180)
 
-
-# this method determines whether or not the search is a specified or random drink and passes the appropriate url
 def random_or_specified(search_type):
+    """
+    A method that is bound to the <enter> key, search, and random button that determines whether or not the search is
+    from the search bar if a user enters a drink name or from the random button if a user clicks to find a random drink
+    and passes the appropriate url to the method get_cocktail() to retrieve drink info
+    """
     if search_type == "specified":
         drink = search_text.get()
         url = "http://www.thecocktaildb.com/api/json/v1/1/search.php?s=" + drink + ""
     else:
         url = "http://www.thecocktaildb.com/api/json/v1/1/random.php"
-
     get_cocktail(url)
 
 def display_drink_name_title(drink_name):
+    """
+    A method that is called by get_cocktail() to display the drink name title
+    """
     background.itemconfig(drinkName, text=drink_name)
 
 def get_ingredients(drink):
+    """
+    A method that is called by get_cocktail() to get the drink ingredients and returns it in a list
+    """
     ingredient_lst = []
     for i in range(1, 9):
         if drink["drinks"][0][f"strIngredient{i}"] is None or drink["drinks"][0][f"strIngredient{i}"] == "":
@@ -155,6 +182,9 @@ def get_ingredients(drink):
     return ingredient_lst
 
 def get_measurements(drink):
+    """
+    A method that is called by get_cocktail() to get the drink ingredient measurements and returns it in a list
+    """
     measurement_lst = []
     for i in range(1, 9):
         if drink["drinks"][0][f"strMeasure{i}"] is None or drink["drinks"][0][f"strMeasure{i}"] == "":
@@ -163,8 +193,12 @@ def get_measurements(drink):
     return measurement_lst
 
 def display_ingredients_and_measurements(ingredient_lst, measurement_lst):
+    """
+    A method that is called by get_cocktail() to display the ingredients and their measurements
+    """
     ingredients_and_measurements = ""
     for i in range(len(ingredient_lst)):
+        # sometimes an exact measurement isn't needed so we only display the ingredient in these cases
         try:
             measurement = measurement_lst[i]
         except IndexError:
@@ -174,13 +208,19 @@ def display_ingredients_and_measurements(ingredient_lst, measurement_lst):
     ingredient_label.place(x=200, y=430)
 
 def display_recipe(instructions):
+    """
+    A method that is called by get_cocktail() to display the recipe instructions
+    """
     recipeVar.set("Recipe \n \n" + instructions)
     recipe_label.place(x=730, y=430)
 
 def get_wiki(drink_name):
+    """
+    A method that is called by get_cocktail() to send a GET request to my teammate Dani's wiki scraper microservice to
+    retrieve and return the first two sentences from Wikipedia. If the drink doesn't exist on wikipedia then it displays
+    a message telling the user
+    """
     wiki_url = "https://wiki-scrape-361.herokuapp.com/firstxpara/" + drink_name + "_(cocktail)/1"
-
-    # GET request
     response = requests.get(wiki_url)
     json = response.json()
     wiki_info = json['output'][0]
@@ -197,14 +237,20 @@ def get_wiki(drink_name):
             info += i
             if i == ".":
                 num_of_periods += 1
+
     return info
 
 def display_wiki(info):
+    """
+    A method that is called by get_cocktail() to display the drink info from wikipedia
+    """
     infoVar.set(info)
     info_label.place(x=50, y=300)
 
 def display_image(drink_img):
-    # cocktail image - place image
+    """
+    A method that is called by get_cocktail() to resize and display the drink image
+    """
     image_url = urlopen(drink_img)
     raw_data = image_url.read()
     image_url.close()
@@ -216,14 +262,21 @@ def display_image(drink_img):
     image_label.place(x=730, y=300)
 
 def clear_search_entry_field():
-    # delete text inside search entry field
+    """
+    A method that is called by get_cocktail() to clear any existing drink names in the search bar and reset the
+    placeholder text after a search is made
+    """
     search_input.delete(0, END)
     search_input.insert(0, "Search cocktail by name")
     refresh_button.focus()
     search_button.bind("<FocusIn>", lambda args: search_input.delete('0', 'end'))
 
 def get_cocktail(url):
-    # GET request
+    """
+    A method that sends a GET request to the appropriate URL and retrieves information from theCocktailDB API and my
+    teammate Dani's wiki scraper microservice then dynamically displays the drink name title, info, ingredients &
+    measurements, drink image, and recipe
+    """
     response = requests.get(url)
     json = response.json()
     drink_name = json['drinks'][0]['strDrink']
