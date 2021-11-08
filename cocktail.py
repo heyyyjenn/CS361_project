@@ -22,7 +22,7 @@ background.create_text(600, 50,
                        font=("Bradley Hand ITC", 50, "bold"),
                        text="Cocktail Recipes")
 
-# create empty placeholders for drink name, info, ingredients, recipe, and image to update later dynamically
+# create empty placeholders for drink name, info, ingredients, recipe, image, and invalid drink to update dynamically
 drinkName = background.create_text(600, 250,
                                    fill="white",
                                    font=("Bradley Hand ITC", 40, "bold"),
@@ -44,7 +44,7 @@ ingredient_label = Label(window,
                          font=("Candara", 15),
                          wraplength=500,
                          width=30,
-                         height=12,
+                         height=16,
                          bg='#9AACAA')
 
 recipeVar = StringVar()
@@ -53,12 +53,20 @@ recipe_label = Label(window,
                      font=("Candara", 15),
                      wraplength=300,
                      width=30,
-                     height=12,
+                     height=16,
                      bg='#9AACAA')
 
 image_label = Label(bg='#9AACAA',
                     width=332,
                     height=140)
+
+invalid_drink_label = Label(window,
+                            text="Sorry, we couldn't find that drink. Please enter a different drink and try again.",
+                            font=("Candara", 15),
+                            wraplength=600,
+                            width=60,
+                            height=5,
+                            bg='#9AACAA')
 
 # refresh button & function
 refresh_button = Button(window,
@@ -72,6 +80,7 @@ refresh_button = Button(window,
                         borderwidth=2)
 refresh_button.place(x=540, y=182)
 
+
 def refresh():
     """
     A method that "refreshes" the frame so the user can start over searches by hiding any existing drink name title,
@@ -84,9 +93,9 @@ def refresh():
     recipe_label.place_forget()
     image_label.place_forget()
     background.itemconfig(drinkName, text="")
-    search_input.insert(0, "Search cocktail by name")
+    invalid_drink_label.place_forget()
     refresh_button.focus()
-    search_button.bind("<FocusIn>", lambda args: search_input.delete('0', 'end'))
+    clear_search_entry_field()
 
 
 # search bar description text, entry field, placeholder text, and button
@@ -151,6 +160,7 @@ random_button = Button(window,
                        text="Surprise Me!")
 random_button.place(x=730, y=180)
 
+
 def random_or_specified(search_type):
     """
     A method that is bound to the <enter> key, search, and random button that determines whether or not the search is
@@ -164,11 +174,13 @@ def random_or_specified(search_type):
         url = "http://www.thecocktaildb.com/api/json/v1/1/random.php"
     get_cocktail(url)
 
+
 def display_drink_name_title(drink_name):
     """
     A method that is called by get_cocktail() to display the drink name title
     """
     background.itemconfig(drinkName, text=drink_name)
+
 
 def get_ingredients(drink):
     """
@@ -181,6 +193,7 @@ def get_ingredients(drink):
         ingredient_lst.append(drink["drinks"][0][f"strIngredient{i}"])
     return ingredient_lst
 
+
 def get_measurements(drink):
     """
     A method that is called by get_cocktail() to get the drink ingredient measurements and returns it in a list
@@ -191,6 +204,7 @@ def get_measurements(drink):
             break
         measurement_lst.append(drink["drinks"][0][f"strMeasure{i}"])
     return measurement_lst
+
 
 def display_ingredients_and_measurements(ingredient_lst, measurement_lst):
     """
@@ -207,12 +221,14 @@ def display_ingredients_and_measurements(ingredient_lst, measurement_lst):
     ingredientVar.set("Ingredients \n\n" + ingredients_and_measurements)
     ingredient_label.place(x=200, y=430)
 
+
 def display_recipe(instructions):
     """
     A method that is called by get_cocktail() to display the recipe instructions
     """
     recipeVar.set("Recipe \n \n" + instructions)
-    recipe_label.place(x=730, y=430)
+    recipe_label.place(x=730, y=415)
+
 
 def get_wiki(drink_name):
     """
@@ -240,12 +256,14 @@ def get_wiki(drink_name):
 
     return info
 
+
 def display_wiki(info):
     """
     A method that is called by get_cocktail() to display the drink info from wikipedia
     """
     infoVar.set(info)
     info_label.place(x=50, y=300)
+
 
 def display_image(drink_img):
     """
@@ -261,6 +279,7 @@ def display_image(drink_img):
     image_label.image = photo
     image_label.place(x=730, y=300)
 
+
 def clear_search_entry_field():
     """
     A method that is called by get_cocktail() to clear any existing drink names in the search bar and reset the
@@ -271,24 +290,41 @@ def clear_search_entry_field():
     refresh_button.focus()
     search_button.bind("<FocusIn>", lambda args: search_input.delete('0', 'end'))
 
+
+def display_invalid_drink():
+    """
+    A method that is called by get_cocktail() if the drink searched doesn't exist in the database and displays a message
+    to the user telling them the drink is invalid and to try searching a different drink name then resets the search
+    bar
+    """
+    refresh()
+    invalid_drink_label.place(x=50, y=300)
+    clear_search_entry_field()
+
+
 def get_cocktail(url):
     """
     A method that sends a GET request to the appropriate URL and retrieves information from theCocktailDB API and my
     teammate Dani's wiki scraper microservice then dynamically displays the drink name title, info, ingredients &
-    measurements, drink image, and recipe
+    measurements, drink image, and recipe. If the drink doesn't exist in the database then it displays a message for
+    the user
     """
     response = requests.get(url)
     json = response.json()
-    drink_name = json['drinks'][0]['strDrink']
-    drink_instr = json['drinks'][0]['strInstructions']
-    drink_img = json['drinks'][0]['strDrinkThumb']
 
-    display_drink_name_title(drink_name)
-    display_ingredients_and_measurements(get_ingredients(json), get_measurements(json))
-    display_recipe(drink_instr)
-    display_wiki(get_wiki(drink_name))
-    display_image(drink_img)
-    clear_search_entry_field()
+    if json["drinks"] is None:
+        display_invalid_drink()
+    else:
+        refresh()
+        drink_name = json['drinks'][0]['strDrink']
+        drink_instr = json['drinks'][0]['strInstructions']
+        drink_img = json['drinks'][0]['strDrinkThumb']
+
+        display_drink_name_title(drink_name)
+        display_ingredients_and_measurements(get_ingredients(json), get_measurements(json))
+        display_recipe(drink_instr)
+        display_wiki(get_wiki(drink_name))
+        display_image(drink_img)
 
 
 window.mainloop()
