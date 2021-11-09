@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-from flask_restful import Resource, Api, reqparse
+from flask_restful import Resource, Api
 from flask_cors import CORS
 from flask import Flask, send_file
 import requests
@@ -12,13 +12,13 @@ api = Api(app)
 CORS(app)
 
 class Home(Resource):
-    def get(self):
+    def get_home(self):
         return "To use this image microservice, send a GET request to " \
                "'https://www.lamjenni-image.herokuapp.com/query,width,height' where query is the image string " \
                "keyword and width/height are integers"
 
 class Images(Resource):
-    def get(self, query, width, height):
+    def get_image(self, query, width, height):
 
         # using Bing to scrape images
         bing_url = "http://www.bing.com/images/search?q="
